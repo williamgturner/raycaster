@@ -10,4 +10,12 @@ build:
 	gcc $(C_FILES) -o $(BUILD_DIR)/$(APP_NAME) -rpath /Library/Frameworks $(APP_INCLUDES) $(TEST)
 
 clean:
-	rm ./bin/raycaster
+	rm -f ./bin/raycaster
+
+run:
+	./bin/raycaster
+
+all:
+	make clean
+	make build
+	make run
