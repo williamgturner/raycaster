@@ -5,10 +5,25 @@
 
 #define SCREEN_WIDTH 640
 #define SCREEN_HEIGHT 480
-
 SDL_Window *window;
+SDL_Renderer *renderer;
 uint32_t pixels[SCREEN_WIDTH * SCREEN_HEIGHT];
 int quit = 0;
+
+uint8_t map[36] = {
+    1, 1, 1, 1, 1, 1,
+    1, 0, 0, 0, 0, 1,
+    1, 0, 0, 0, 0, 1,
+    1, 0, 0, 0, 0, 1,
+    1, 0, 0, 0, 0, 1,
+    1, 1, 1, 1, 1, 1,
+};
+
+typedef struct {
+    float x;
+    float y;
+    float theta;
+} observer;
 
 int main(int argc, char *argv[]) {
     //init 
@@ -23,11 +38,15 @@ int main(int argc, char *argv[]) {
         SDL_WINDOW_ALLOW_HIGHDPI);
     
     assert(window >= 0);
+
+    renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_PRESENTVSYNC);
+    assert(renderer >=0);
     // SDL_Surface *window_surface = SDL_GetWindowSurface(window);
     // assert (window_surface != NULL);
 
-    SDL_UpdateWindowSurface(window);
-
+    SDL_SetRenderDrawColor(renderer, 0xff,0x00,0x00,SDL_ALPHA_OPAQUE);
+    SDL_RenderClear(renderer);
+    SDL_RenderPresent(renderer);
     SDL_Event e;
     while (!quit) {
         while (SDL_PollEvent(&e) != 0) {
