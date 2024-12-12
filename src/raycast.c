@@ -46,7 +46,7 @@ float check_horizontal_collisions(float ray_theta) {
     int Xa = 0;
     int dist_to_wall = 0;
 
-    if (ray_theta >= 270 || ray_theta <= 90) {
+    if (ray_theta >= 180 || ray_theta <= 90) {
             ray_y = ((int) camera.y / WORLD_SCALE) * 64 - 1;
             Ya = -WORLD_SCALE;
         } else {
@@ -90,7 +90,7 @@ float check_vertical_collions(float ray_theta) {
     }
     Ya = 64 * tan(ray_theta);
     ray_y = camera.y + ((camera.x-ray_x) * tan(ray_theta));
-    
+
     while (map[(ray_x / WORLD_SCALE) + ((ray_y / WORLD_SCALE) * 6)] == 0) {
             ray_x += Xa;
             ray_y += Ya;
@@ -114,7 +114,7 @@ void cast_rays() {
     int Ya = 0;
     int Xa = 0;
 
-    for (int i = 0; i < 50; i ++) { // Cast as many rays as pixel columns
+    for (int i = 0; i < 60; i ++) { // Cast as many rays as pixel columns
         ray_theta += i * ray_delta;
 
         int ray_x_dist = check_horizontal_collisions(ray_theta);
