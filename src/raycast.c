@@ -47,6 +47,32 @@ int main(int argc, char *argv[]) {
     SDL_SetRenderDrawColor(renderer, 0xff,0x00,0x00,SDL_ALPHA_OPAQUE);
     SDL_RenderClear(renderer);
     SDL_RenderPresent(renderer);
+
+    SDL_Texture *texture;
+    texture = SDL_CreateTexture(
+            renderer,
+            SDL_PIXELFORMAT_ABGR8888,
+            SDL_TEXTUREACCESS_STREAMING,
+            SCREEN_WIDTH,
+            SCREEN_HEIGHT);
+
+    pixels[300] = 0xFF0000FF;
+    for (int y = 50; y <= 300; y++) {
+        pixels[(y * SCREEN_WIDTH) + 100] = 0xFF0000FF;
+    }
+
+    SDL_UpdateTexture(texture, NULL, pixels, SCREEN_WIDTH * 4);
+    
+    SDL_RenderCopyEx(
+            renderer,
+            texture,
+            NULL,
+            NULL,
+            0.0,
+            NULL,
+            SDL_FLIP_VERTICAL);
+    SDL_RenderPresent(renderer);
+
     SDL_Event e;
     while (!quit) {
         while (SDL_PollEvent(&e) != 0) {
