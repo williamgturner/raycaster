@@ -16,9 +16,9 @@ int quit = 0;
 
 uint8_t map[36] = {
     1, 1, 1, 1, 1, 1,
-    1, 0, 0, 0, 0, 1,
-    1, 0, 0, 2, 0, 1,
-    1, 0, 0, 0, 0, 1,
+    1, 0, 1, 0, 0, 1,
+    1, 1, 1, 0, 0, 1,
+    1, 0, 1, 0, 0, 1,
     1, 0, 0, 0, 0, 1,
     1, 1, 1, 1, 1, 1,
 };
@@ -48,10 +48,10 @@ float check_horizontal_collisions(float ray_theta) {
 
     if (ray_theta >= 180 || ray_theta <= 90) {
             ray_y = ((int) camera.y / WORLD_SCALE) * 64 - 1;
-            Ya = -WORLD_SCALE;
+            Ya = WORLD_SCALE;
         } else {
             ray_y = ((int) camera.y / WORLD_SCALE) * 64 + 64;
-            Ya = WORLD_SCALE;
+            Ya = -WORLD_SCALE;
         }
         ray_x = camera.x + ((camera.y - ray_y)/(tan(ray_theta)));
         Xa = (int) 64/(tan(ray_theta));
@@ -109,14 +109,20 @@ float check_vertical_collions(float ray_theta) {
 void cast_rays() {
     static float ray_delta = FOV / (float) SCREEN_WIDTH;
     float ray_theta = (camera.theta - 30);
+    printf("delta: %f\n", ray_delta);
     int ray_x = 0;
     int ray_y = 0;
     int Ya = 0;
     int Xa = 0;
 
-    for (int i = 0; i < 60; i ++) { // Cast as many rays as pixel columns
-        ray_theta += i * ray_delta;
-
+    for (int i = 0; i < 320; i ++) { // Cast as many rays as pixel columns
+        if (ray_theta < 0) {
+            ray_theta = 360.0 + ray_theta;
+        } else if (ray_theta > 360) {
+            ray_theta = ray_theta - 360;
+        }
+        ray_theta += ray_delta;
+        printf("theta: %f ", ray_theta);
         int ray_x_dist = check_horizontal_collisions(ray_theta);
         int ray_y_dist = check_vertical_collions(ray_theta);
 
