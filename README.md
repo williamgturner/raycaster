@@ -14,3 +14,5 @@ Here are a collection of progress images to show how the program developed.
 
 ### 13/12/24
 ![alt-text](./images/13.12.24.png "First attempt at ray-casting")
+
+![alt-text](./images/woops.png "Not sure what happened here")

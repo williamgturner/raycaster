@@ -16,9 +16,9 @@ int quit = 0;
 
 uint8_t map[36] = {
     1, 1, 1, 1, 1, 1,
-    1, 0, 1, 0, 0, 1,
-    1, 1, 1, 0, 0, 1,
-    1, 0, 1, 0, 0, 1,
+    1, 0, 0, 0, 0, 1,
+    1, 0, 0, 0, 0, 1,
+    1, 0, 0, 0, 0, 1,
     1, 0, 0, 0, 0, 1,
     1, 1, 1, 1, 1, 1,
 };
@@ -46,29 +46,26 @@ float check_horizontal_collisions(float ray_theta) {
     int Xa = 0;
     int dist_to_wall = 0;
 
-    if (ray_theta >= 180 || ray_theta <= 90) {
-            ray_y = ((int) camera.y / WORLD_SCALE) * 64 - 1;
-            Ya = WORLD_SCALE;
-        } else {
-            ray_y = ((int) camera.y / WORLD_SCALE) * 64 + 64;
+    if (ray_theta <= 180) {
+            ray_y = (int) (((int) camera.y) / WORLD_SCALE * 64 - 1);
             Ya = -WORLD_SCALE;
+        } else {
+            ray_y = (int) (((int) camera.y) / WORLD_SCALE * 64 + 64);
+            Ya = WORLD_SCALE;
         }
+
         ray_x = camera.x + ((camera.y - ray_y)/(tan(ray_theta)));
         Xa = (int) 64/(tan(ray_theta));
 
         while (map[(ray_x / WORLD_SCALE) + ((ray_y / WORLD_SCALE) * 6)] == 0) {
             ray_x += Xa;
             ray_y += Ya;
-            if (ray_y / 64 >= 7 * 64) {
-                printf("Lol");
-                break;
-            }
-            if (ray_x / 64 >= 7 * 64) {
+            if (ray_y / 64 >= 7 * 64 && ray_x / 64 >= 7 * 64) {
                 printf("Lol");
                 break;
             }
         }
-
+    printf("GRIDPOS: %d\n", (ray_x / WORLD_SCALE) + ((ray_y / WORLD_SCALE) * 6));
     return (int) (camera.x - ray_x / cos(ray_theta));
 }
 
@@ -79,7 +76,7 @@ float check_vertical_collions(float ray_theta) {
     int Xa = 0;
     int dist_to_wall = 0;
 
-    if (ray_theta >= 0 || ray_theta <= 180) {
+    if (ray_theta <= 90 || ray_theta >= 270) {
         ray_x = (int) (camera.x/64);
         ray_x = ray_x * 64 + 64;
         Xa = WORLD_SCALE;
@@ -94,14 +91,13 @@ float check_vertical_collions(float ray_theta) {
     while (map[(ray_x / WORLD_SCALE) + ((ray_y / WORLD_SCALE) * 6)] == 0) {
             ray_x += Xa;
             ray_y += Ya;
-            if (ray_y / 64 >= 7 * 64) {
-                break;
-            }
-            if (ray_x / 64 >= 7 * 64) {
+            if (ray_y / 64 >= 7 * 64 && ray_x / 64 >= 7 * 64) {
+                printf("Lol");
                 break;
             }
     }
 
+    printf("GRIDPOS: %d\n", (ray_x / WORLD_SCALE) + ((ray_y / WORLD_SCALE) * 6));
     return (int) (camera.x - ray_x / cos(ray_theta));
 
 }
@@ -116,12 +112,12 @@ void cast_rays() {
     int Xa = 0;
 
     for (int i = 0; i < 320; i ++) { // Cast as many rays as pixel columns
+        ray_theta += ray_delta;
         if (ray_theta < 0) {
             ray_theta = 360.0 + ray_theta;
         } else if (ray_theta > 360) {
             ray_theta = ray_theta - 360;
         }
-        ray_theta += ray_delta;
         printf("theta: %f ", ray_theta);
         int ray_x_dist = check_horizontal_collisions(ray_theta);
         int ray_y_dist = check_vertical_collions(ray_theta);
