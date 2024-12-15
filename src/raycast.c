@@ -29,11 +29,11 @@ typedef struct {
     float theta;
 } observer;
 
-observer camera = {64 * 4, 64 * 4, 220.0};
+observer camera = {64 * 1, 64 * 3, 68.0};
 
 float rotate(float theta, float delta) {
     theta += delta;
-    if (theta > 360) {
+    if (theta >= 360) {
         theta -= 360;
     } else if (theta < 0) {
         theta += 360;
@@ -52,6 +52,7 @@ int distance_between_points(float ray_x, float ray_y) {
 }
 
 void draw_vert(float distance, int column) {
+    printf(" DISTANCE: %f", distance);
     int height = (int) (64 / distance * 277);
     int start_pos = (SCREEN_HEIGHT - height) / 2;
     int end_pos = start_pos + height;
@@ -67,11 +68,12 @@ void draw_vert(float distance, int column) {
         //printf("%d\n", i);
         }
     }
+    printf(" HEIGHT: %d\n", height);
 }
 float check_horizontal_collisions(float ray_theta) {
     int grid_x, grid_y, ray_y, ray_x, y_delta, x_delta;
 
-    ray_y = (int) (camera.y / WORLD_SCALE);
+    ray_y = ((int) (camera.y / WORLD_SCALE)) * 64;
     if (ray_theta <= 180) {
         ray_y -= 1;
         y_delta = -WORLD_SCALE;
@@ -80,19 +82,22 @@ float check_horizontal_collisions(float ray_theta) {
         y_delta = WORLD_SCALE;
     }
 
-    x_delta = WORLD_SCALE/tan(FOV);
+    x_delta = WORLD_SCALE/tan(ray_theta);
     ray_x = (int) (camera.x + ((camera.y - ray_y)/tan(ray_theta)));
     grid_x = ray_x/WORLD_SCALE;
     grid_y = ray_y/WORLD_SCALE;
 
-    while (map[grid_x + (grid_y*6)] == 0) {
+    if((grid_x + (grid_y * 6 )) > 35 || (grid_x + (grid_y * 6 )) < 0) {
+            return 9999999999999;
+    }
+    while (map[grid_x + (grid_y * 6 )] == 0) {
         ray_x += x_delta;
         ray_y += y_delta;
         grid_x = ray_x/WORLD_SCALE;
         grid_y = ray_y/WORLD_SCALE;
-        if((grid_x + (grid_y*6)) > 36) {
+        if((grid_x + (grid_y * 6 )) > 35 || (grid_x + (grid_y * 6 )) < 0) {
             return 9999999999999;
-        }
+    }
     }
 
     return distance_between_points(ray_x, ray_y);
@@ -101,7 +106,7 @@ float check_horizontal_collisions(float ray_theta) {
 float check_vertical_collisions(float ray_theta) {
     int grid_x, grid_y, ray_y, ray_x, y_delta, x_delta;
 
-    ray_x = ((int) camera.x/WORLD_SCALE) * 64;
+    ray_x = ((int) (camera.x/WORLD_SCALE)) * 64;
     if (ray_theta <= 90 || ray_theta >= 270) {
         ray_x += 64;
         x_delta = WORLD_SCALE;
@@ -116,14 +121,19 @@ float check_vertical_collisions(float ray_theta) {
     grid_x = ray_x/WORLD_SCALE;
     grid_y = ray_y/WORLD_SCALE;
 
-    while (map[grid_x + (grid_y*6)] == 0) {
+    if((grid_x + (grid_y * 6 )) > 35 || (grid_x + (grid_y * 6 )) < 0) {
+            return 9999999999999;
+    }
+
+    printf("COORDS: %d", grid_x + (grid_y  * 6 ));
+    while (map[grid_x + (grid_y  * 6 )] == 0) {
         ray_x += x_delta;
         ray_y += y_delta;
         grid_x = ray_x/WORLD_SCALE;
         grid_y = ray_y/WORLD_SCALE;
-        if((grid_x + (grid_y*6)) > 36) {
+        if((grid_x + (grid_y * 6 )) > 35 || (grid_x + (grid_y * 6 )) < 0) {
             return 9999999999999;
-        }
+    }
     }
 
     return distance_between_points(ray_x, ray_y);
@@ -131,19 +141,19 @@ float check_vertical_collisions(float ray_theta) {
 
 void render() {
     static const float ray_delta = FOV / SCREEN_WIDTH; // angle between subsequent rays
-    float ray_theta = rotate(camera.theta, -FOV/2); // ray angle
+    float ray_theta = rotate(camera.theta, -FOV / 2); // ray angle
 
     for (int i = 0; i < 320; i++) { // cast 320 rays
         float horizontal_distance = check_horizontal_collisions(ray_theta);
         float vertical_distance = check_vertical_collisions(ray_theta);
 
-        //printf("Theta: %f H: %f, V: %f\n", ray_theta, horizontal_distance, vertical_distance);
+        printf("Theta: %f H: %f, V: %f", ray_theta, horizontal_distance, vertical_distance);
         if (horizontal_distance < vertical_distance) {
             draw_vert(horizontal_distance, i);
         } else {
-            //printf("Vertical: %f", vertical_distance);
             draw_vert(vertical_distance, i);
         }
+
         ray_theta = rotate(ray_theta, ray_delta); // increment ray angle
     }
 }
@@ -210,14 +220,6 @@ int main(int argc, char *argv[]) {
         }
         SDL_Delay(50);
         memset(pixels, 0, sizeof(pixels));
-        const uint8_t *keystate = SDL_GetKeyboardState(NULL);
-        if (keystate[SDL_SCANCODE_LEFT]) {
-            camera.theta = rotate(camera.theta, -0.2);
-        }
-
-        if (keystate[SDL_SCANCODE_RIGHT]) {
-            camera.theta = rotate(camera.theta, 0.2);
-        }
         render();
 
         SDL_UpdateTexture(texture, NULL, pixels, SCREEN_WIDTH * 4);
@@ -232,7 +234,15 @@ int main(int argc, char *argv[]) {
             SDL_FLIP_VERTICAL);
 
         SDL_RenderPresent(renderer);
-    }
+            const uint8_t *keystate = SDL_GetKeyboardState(NULL);
+            if (keystate[SDL_SCANCODE_LEFT]) {
+                camera.theta = rotate(camera.theta,-1.0);
+            }
+
+            if (keystate[SDL_SCANCODE_RIGHT]) {
+                camera.theta = rotate(camera.theta, 1.0);
+            }
+        }
 
     SDL_DestroyWindow(window);
     SDL_Quit();
