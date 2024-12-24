@@ -27,12 +27,16 @@ uint8_t map[SCREEN_HEIGHT * SCREEN_WIDTH] = {
 };
 
 typedef struct {
-    int x;
-    int y;
+    float x;
+    float y;
     float theta;
 } observer;
 
-observer camera = {4 * WORLD_SCALE, 3 * WORLD_SCALE, 45};
+observer camera = {4 * WORLD_SCALE, 3 * WORLD_SCALE, 45.0};
+
+float square(float x) {
+    return x * x;
+}
 
 float rotate(float theta, float delta)
 {
@@ -51,6 +55,17 @@ void draw_square(int x, int y, int size, int colour)
         for (int j = 0; j < size; j++) {
             pixels[(y + j) * SCREEN_WIDTH + i] = colour; // green
         }
+    }
+}
+
+void draw_wall (int column, float distance) {
+    int height =  64.0f / distance * 277;
+    int top = 120 + (height / 2);
+    if (height > 240) {
+        height = 240;
+    }
+    for (int i = (SCREEN_HEIGHT - height) / 2; i < top; i++) {
+        pixels[i * SCREEN_WIDTH + column] = 0xFF0000FF;
     }
 }
 
@@ -116,29 +131,129 @@ void render_minimap()
         }
     }
 
-    // player pos in minimap scale
+    // camera pos in minimap scale
     float mini_x = camera.x / 64 * CELL_SIZE;
     float mini_y = camera.y / 64 * CELL_SIZE;
+    // draw camera pos
     draw_square((SCREEN_WIDTH - (CELL_SIZE * MAP_WIDTH)) + mini_x, SCREEN_HEIGHT - mini_y, 2, 0xFFFFFF);
     mini_x = (SCREEN_WIDTH - (CELL_SIZE * MAP_WIDTH)) + mini_x;
     mini_y = SCREEN_HEIGHT - mini_y;
-
-    // draw player pos
-
+    // draw angle of camera
     int vision_end_x = mini_x + 20 * cos((camera.theta) * M_PI / 180);
     int vision_end_y = mini_y + 20 * sin(camera.theta  * M_PI / 180);
+
     generate_line_points(mini_x, mini_y, vision_end_x, vision_end_y);
-    // draw cone of vision
 
 }
+int distance_between_points(float ray_x, float ray_y) {
+    float distance = (float) sqrt(square(camera.x - ray_x) + square(camera.y - ray_y));
+    return distance;
+}
 
-void render()
-{
-    static const float ray_delta = FOV / SCREEN_WIDTH;
-    float ray_theta = rotate(camera.theta, -30);
+void draw_vert(float distance, int column) {
+    //printf(" DISTANCE: %f", distance);
+    int height = (int) (64 / distance * 277);
+    int start_pos = (SCREEN_HEIGHT - height) / 2;
+    int end_pos = start_pos + height;
+    //printf("HEIGHT: %d\nSTART: %d\nEND:%d\n", height,start_pos,end_pos);
+    if (height >= SCREEN_HEIGHT) {
+        for (int y = 0; y < SCREEN_HEIGHT; y++) {
+            pixels[(y * SCREEN_WIDTH) + column] = 0xFF0000FF;
+        }
+    } else {
+        for (int i = start_pos; (i < end_pos); i++) {
+        //printf("pixel: %d\nheight:%d", i * SCREEN_WIDTH + column, height);
+        pixels[i * SCREEN_WIDTH + column] =  0xFF0000FF;
+        //printf("%d\n", i);
+        }
+    }
+    //printf(" HEIGHT: %d\n", height);
+}
+float check_horizontal_collisions(float ray_theta) {
+    int grid_x, grid_y, ray_y, ray_x, y_delta, x_delta;
 
-    for (int column = 0; column < SCREEN_WIDTH; column++) {
+    ray_y = ((int) (camera.y / WORLD_SCALE)) * 64;
+    if (ray_theta <= 180) {
+        ray_y -= 1;
+        y_delta = -WORLD_SCALE;
+    } else {
+        ray_y += 64;
+        y_delta = WORLD_SCALE;
+    }
 
+    x_delta = WORLD_SCALE/tan(ray_theta);
+    ray_x = (int) (camera.x + ((camera.y - ray_y)/tan(ray_theta)));
+    grid_x = ray_x/WORLD_SCALE;
+    grid_y = ray_y/WORLD_SCALE;
+
+    if((grid_x + (grid_y * 6 )) > 35 || (grid_x + (grid_y * 6 )) < 0) {
+            return 1e30;
+    }
+    while (map[grid_x + (grid_y * 6 )] == 0) {
+        ray_x += x_delta;
+        ray_y += y_delta;
+        grid_x = ray_x/WORLD_SCALE;
+        grid_y = ray_y/WORLD_SCALE;
+        if((grid_x + (grid_y * 6 )) > 35 || (grid_x + (grid_y * 6 )) < 0) {
+            return 1e30;
+    }
+    }
+
+    return distance_between_points(ray_x, ray_y);
+}
+
+float check_vertical_collisions(float ray_theta) {
+    int grid_x, grid_y, ray_y, ray_x, y_delta, x_delta;
+
+    ray_x = ((int) (camera.x/WORLD_SCALE)) * 64;
+    if (ray_theta <= 90 || ray_theta >= 270) {
+        ray_x += 64;
+        x_delta = WORLD_SCALE;
+    } else {
+        ray_x -= 1; 
+        x_delta = -WORLD_SCALE;
+    }
+
+    ray_y = camera.y + ((camera.x - ray_x) * tan(ray_theta));
+    y_delta = WORLD_SCALE * tan(ray_theta);
+
+    grid_x = ray_x/WORLD_SCALE;
+    grid_y = ray_y/WORLD_SCALE;
+
+    if((grid_x + (grid_y * 6 )) > 35 || (grid_x + (grid_y * 6 )) < 0) {
+            return 1e30;
+    }
+
+    //printf("COORDS: %d", grid_x + (grid_y  * 6 ));
+    while (map[grid_x + (grid_y  * 6 )] == 0) {
+        ray_x += x_delta;
+        ray_y += y_delta;
+        grid_x = ray_x/WORLD_SCALE;
+        grid_y = ray_y/WORLD_SCALE;
+        if((grid_x + (grid_y * 6 )) > 35 || (grid_x + (grid_y * 6 )) < 0) {
+            return 1e30;
+    }
+    }
+
+    return distance_between_points(ray_x, ray_y);
+}
+
+void render() {
+    static const float ray_delta = FOV / SCREEN_WIDTH; // angle between subsequent rays
+    float ray_theta = rotate(camera.theta, -FOV / 2); // ray angle
+
+    for (int i = 0; i < 320; i++) { // cast 320 rays
+        float horizontal_distance = check_horizontal_collisions(ray_theta * (M_PI/180));
+        float vertical_distance = check_vertical_collisions(ray_theta * (M_PI/180));
+
+        //printf("Theta: %f H: %f, V: %f", ray_theta, horizontal_distance, vertical_distance);
+        if (horizontal_distance < vertical_distance) {
+            draw_vert(horizontal_distance, i);
+        } else {
+            draw_vert(vertical_distance, i);
+        }
+
+        ray_theta = rotate(ray_theta, ray_delta); // increment ray angle
     }
 }
 
@@ -153,7 +268,7 @@ int main(int argc, char *argv[]) {
         640,
         480,
         SDL_WINDOW_ALLOW_HIGHDPI);
-    
+
     assert(window >= 0);
 
     renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_PRESENTVSYNC);
@@ -178,6 +293,7 @@ int main(int argc, char *argv[]) {
         memset(pixels, 0, sizeof(pixels));
         //draw_square(300, 270, 10, 0x00FF00);
         //draw_square(SCREEN_WIDTH - (10 * 6), SCREEN_HEIGHT - (10 * 6), 10);
+        render();
         render_minimap();
         //generate_line_points(10, 10, 50, 30);
         SDL_UpdateTexture(texture, NULL, pixels, SCREEN_WIDTH * 4);
@@ -185,9 +301,9 @@ int main(int argc, char *argv[]) {
                 //this opens a font style and sets a size
                 TTF_Font* Mono = TTF_OpenFont("src/Fixedsys62.ttf", 48);
                 if (Mono == NULL) {
-    printf("Failed to load font: %s\n", TTF_GetError());
-    return 1;
-}
+                    printf("Failed to load font: %s\n", TTF_GetError());
+                    return 1;
+                }
                 // maxing out all would give you the color white,
                 // and it will be your text's color
                 SDL_Color White = {255, 255, 255};
@@ -195,7 +311,7 @@ int main(int argc, char *argv[]) {
                 // as TTF_RenderText_Solid could only be used on
                 // SDL_Surface then you have to create the surface first
                 char buffer[50];
-                sprintf(buffer, "X: %d | Y: %d | Theta: %f", camera.x, camera.y, camera.theta);
+                sprintf(buffer, "X: %f | Y: %f | Theta: %f", camera.x, camera.y, camera.theta);
                 SDL_Surface* surfaceMessage =
                     TTF_RenderText_Solid(Mono, buffer, White); 
 
