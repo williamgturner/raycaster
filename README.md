@@ -25,4 +25,7 @@ Here are a collection of progress images to show how the renderer developed.
 ![alt-text](./images/15.12.24.gif "I can almost see it...")
 
 ### 24/12/24
-![alt-text](./images/24.12.24.gif "Almost working!")
+After taking a few days off, I ventured off on a new git branch to start semi-fresh.
+I built in debugging tools such as the mini-map and readout from the ground up as I was determined to succeed.
+It was also now that I realised that the Math.h trigonometry functions take radian arguments, not degrees...
+![alt-text](./images/24.12.24.gif "Pretty much working!")
