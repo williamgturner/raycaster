@@ -2,7 +2,7 @@
 #include <assert.h>
 #include <stdio.h>
 #include <math.h>
-
+#include <float.h>
 
 #define SCREEN_WIDTH 320
 #define SCREEN_HEIGHT 240
@@ -29,17 +29,44 @@ typedef struct {
     float theta;
 } observer;
 
-observer camera = {2 * 64, 3 * 64, 0.0};
+observer camera = {4 * WORLD_SCALE, 3 * WORLD_SCALE, 0.0};
 
-void draw_vert(int start_pos, int end_pos)
+float rotate(float theta, float delta)
 {
-    for (int y = 0; y <= SCREEN_HEIGHT; y++) {
-        pixels[(y * SCREEN_WIDTH) + 100] = 0xFF0000FF;
+    theta += delta;
+    if (theta < 1) {
+        theta += 360;
+    } else if (theta > 359) {
+        theta -= 360;
+    }
+    return theta;
+}
+
+void draw_square(int x, int y, int size)
+{
+    for(int i = x; i < x + size; i++) {
+        for (int j = 0; j < size; j++) {
+            pixels[(y + j) * SCREEN_WIDTH + i] = 0x00FF00;
+        }
+    }
+}
+
+void render_minimap()
+{
+    // bottom left = SCREEN_WDITH * SCREEN_HEIGHT - 25 * 6 - (25*6*SCREEN_WIDTH)
+    // printf("Test");
+    for (int row = 0; row < 6; row ++) {
+        for (int column = 0; column < 6; column++) {
+            if (map[row * 6 + column] != 0){
+                draw_square(SCREEN_WIDTH - (10 * 6) + column * 10, SCREEN_HEIGHT - 10 - row * 10, 10);
+            }
+            // printf("X: %d | Y: %d\n", SCREEN_WIDTH - (10 * 6) + column * 10, SCREEN_HEIGHT - 10 - row * 10);
+        }
     }
 }
 
 int main(int argc, char *argv[]) {
-    //init 
+    // Init 
     assert(SDL_Init(SDL_INIT_VIDEO) >= 0);
 
     window = SDL_CreateWindow(
@@ -53,13 +80,7 @@ int main(int argc, char *argv[]) {
     assert(window >= 0);
 
     renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_PRESENTVSYNC);
-    assert(renderer >=0);
-    // SDL_Surface *window_surface = SDL_GetWindowSurface(window);
-    // assert (window_surface != NULL);
-
-    SDL_SetRenderDrawColor(renderer, 0xff, 0x00, 0x00, SDL_ALPHA_OPAQUE);
-    SDL_RenderClear(renderer);
-    SDL_RenderPresent(renderer);
+    assert(renderer >= 0);
 
     SDL_Texture *texture;
     texture = SDL_CreateTexture(
@@ -69,20 +90,6 @@ int main(int argc, char *argv[]) {
             SCREEN_WIDTH,
             SCREEN_HEIGHT);
 
-    SDL_UpdateTexture(texture, NULL, pixels, SCREEN_WIDTH * 4);
-    
-    SDL_RenderCopyEx(
-        renderer,
-        texture,
-        NULL,
-        NULL,
-        0.0,
-        NULL,
-        SDL_FLIP_VERTICAL);
-
-    SDL_RenderPresent(renderer);
-
-
     SDL_Event e;
     while (!quit) {
         while (SDL_PollEvent(&e) != 0) {
@@ -91,16 +98,29 @@ int main(int argc, char *argv[]) {
             }
         }
         SDL_Delay(100);
+        memset(pixels, 0, sizeof(pixels));
+        //draw_square(50, 50, 10);
+        //draw_square(SCREEN_WIDTH - (10 * 6), SCREEN_HEIGHT - (10 * 6), 10);
+        render_minimap();
         SDL_UpdateTexture(texture, NULL, pixels, SCREEN_WIDTH * 4);
         SDL_RenderCopyEx(
-        renderer,
-        texture,
-        NULL,
-        NULL,
-        0.0,
-        NULL,
-        SDL_FLIP_VERTICAL);
+            renderer,
+            texture,
+            NULL,
+            NULL,
+            0.0,
+            NULL,
+            SDL_FLIP_VERTICAL);
         SDL_RenderPresent(renderer);
+        
+        const uint8_t *keystate = SDL_GetKeyboardState(NULL);
+        if (keystate[SDL_SCANCODE_LEFT]) {
+            camera.theta = rotate(camera.theta, -10);
+        }
+
+        if (keystate[SDL_SCANCODE_RIGHT]) {
+            camera.theta = rotate(camera.theta, 10);
+        }
     }
 
     SDL_DestroyWindow(window);
