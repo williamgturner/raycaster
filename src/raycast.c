@@ -7,6 +7,8 @@
 #define SCREEN_WIDTH 320
 #define SCREEN_HEIGHT 240
 #define WORLD_SCALE 64
+#define MAP_WIDTH 6
+#define MAP_HEIGHT 6
 #define FOV 60.0
 
 SDL_Window *window;
@@ -14,7 +16,7 @@ SDL_Renderer *renderer;
 uint32_t pixels[SCREEN_WIDTH * SCREEN_HEIGHT];
 int quit = 0;
 
-uint8_t map[36] = {
+uint8_t map[SCREEN_HEIGHT * SCREEN_WIDTH] = {
     1, 1, 1, 1, 1, 1,
     1, 0, 0, 0, 0, 1,
     1, 0, 0, 0, 0, 1,
@@ -42,11 +44,11 @@ float rotate(float theta, float delta)
     return theta;
 }
 
-void draw_square(int x, int y, int size)
+void draw_square(int x, int y, int size, int colour)
 {
     for(int i = x; i < x + size; i++) {
         for (int j = 0; j < size; j++) {
-            pixels[(y + j) * SCREEN_WIDTH + i] = 0x00FF00;
+            pixels[(y + j) * SCREEN_WIDTH + i] = colour; // green
         }
     }
 }
@@ -55,14 +57,24 @@ void render_minimap()
 {
     // bottom left = SCREEN_WDITH * SCREEN_HEIGHT - 25 * 6 - (25*6*SCREEN_WIDTH)
     // printf("Test");
-    for (int row = 0; row < 6; row ++) {
-        for (int column = 0; column < 6; column++) {
-            if (map[row * 6 + column] != 0){
-                draw_square(SCREEN_WIDTH - (10 * 6) + column * 10, SCREEN_HEIGHT - 10 - row * 10, 10);
+    static const int CELL_SIZE = 10;
+    for (int row = 0; row < MAP_HEIGHT; row ++) {
+        for (int column = 0; column < MAP_WIDTH; column++) {
+            if (map[row * MAP_WIDTH + column] != 0){
+                draw_square(SCREEN_WIDTH - (CELL_SIZE * MAP_WIDTH) + column * CELL_SIZE, SCREEN_HEIGHT - CELL_SIZE - row * CELL_SIZE, CELL_SIZE, 0x00FF00);
             }
             // printf("X: %d | Y: %d\n", SCREEN_WIDTH - (10 * 6) + column * 10, SCREEN_HEIGHT - 10 - row * 10);
         }
     }
+
+    int mini_x = camera.x / 64 * 10;
+    int mini_y = camera.y / 64 * 10;
+
+    //printf("%d, %d\n", (SCREEN_WIDTH - (CELL_SIZE * MAP_WIDTH)) + mini_x, SCREEN_HEIGHT - mini_y);
+    draw_square((SCREEN_WIDTH - (CELL_SIZE * MAP_WIDTH)) + mini_x, SCREEN_HEIGHT - mini_y, 2, 0xFFFFFF);
+    //printf("%d\n", mini_x);
+    //pixels[mini_y * SCREEN_WIDTH + mini_x] = 0xFF000000; // red
+
 }
 
 int main(int argc, char *argv[]) {
@@ -97,9 +109,9 @@ int main(int argc, char *argv[]) {
                 quit = 1;
             }
         }
-        SDL_Delay(100);
+        SDL_Delay(50);
         memset(pixels, 0, sizeof(pixels));
-        //draw_square(50, 50, 10);
+        //draw_square(300, 270, 10, 0x00FF00);
         //draw_square(SCREEN_WIDTH - (10 * 6), SCREEN_HEIGHT - (10 * 6), 10);
         render_minimap();
         SDL_UpdateTexture(texture, NULL, pixels, SCREEN_WIDTH * 4);
@@ -115,11 +127,19 @@ int main(int argc, char *argv[]) {
         
         const uint8_t *keystate = SDL_GetKeyboardState(NULL);
         if (keystate[SDL_SCANCODE_LEFT]) {
-            camera.theta = rotate(camera.theta, -10);
+            camera.x -= 10;
         }
 
         if (keystate[SDL_SCANCODE_RIGHT]) {
-            camera.theta = rotate(camera.theta, 10);
+            camera.x += 10;
+        }
+
+        if (keystate[SDL_SCANCODE_UP]) {
+            camera.y -= 10;
+        }
+
+        if (keystate[SDL_SCANCODE_DOWN]) {
+            camera.y += 10;
         }
     }
 
