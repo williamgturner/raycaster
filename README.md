@@ -10,9 +10,10 @@ make all
 ~~~
 
 ## Devlog
-Here are a collection of progress images to show how the program developed.
+Here are a collection of progress images to show how the renderer developed.
 
 ### 13/12/24
 ![alt-text](./images/13.12.24.png "First attempt at ray-casting")
 
+### 13/12/24
 ![alt-text](./images/woops.png "Not sure what happened here")

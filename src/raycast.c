@@ -115,6 +115,7 @@ int main(int argc, char *argv[]) {
         //draw_square(SCREEN_WIDTH - (10 * 6), SCREEN_HEIGHT - (10 * 6), 10);
         render_minimap();
         SDL_UpdateTexture(texture, NULL, pixels, SCREEN_WIDTH * 4);
+        
         SDL_RenderCopyEx(
             renderer,
             texture,

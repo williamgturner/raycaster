@@ -19,3 +19,5 @@ all:
 	make clean
 	make build
 	make run
+
+# gcc ./src/*.c -g -o ./bin/raycaster -rpath /Library/Frameworks -I./Library/Frameworks/SDL2.framework -F/Library/Frameworks -framework SDL2
