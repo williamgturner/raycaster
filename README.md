@@ -17,3 +17,9 @@ Here are a collection of progress images to show how the renderer developed.
 
 ### 13/12/24
 ![alt-text](./images/woops.png "Not sure what happened here")
+
+### 14/12/24
+![alt-text](./images/14.12.24.png "Not sure what happened here")
+
+### 15/12/24
+![alt-text](./images/15.12.24.gif "Not sure what happened here")
