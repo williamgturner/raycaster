@@ -53,6 +53,27 @@ void draw_square(int x, int y, int size, int colour)
     }
 }
 
+// Implementation of Bresenham's line algorithim
+void generate_line_points(int x0, int y0, int x1, int y1)
+{
+    int dx = x1 - x0;
+    int dy = y1 - y0;
+    int x = x0;
+    int y = y0;
+    int p = 2 * dy - dx;
+
+    while (x < x1) {
+        if (p >= 0) {
+            pixels[y * SCREEN_WIDTH + x] = 0xFFFFFF;
+            y += 1;
+            p += 2 * dy - 2*dx;
+        } else {
+            pixels[y * SCREEN_WIDTH + x] = 0xFFFFFF;
+            p += 2*dy;
+        }
+        x+= 1;
+    }
+}
 void render_minimap()
 {
     // bottom left = SCREEN_WDITH * SCREEN_HEIGHT - 25 * 6 - (25*6*SCREEN_WIDTH)
@@ -67,13 +88,14 @@ void render_minimap()
         }
     }
 
+    // player pos in minimap scale
     int mini_x = camera.x / 64 * 10;
     int mini_y = camera.y / 64 * 10;
 
-    //printf("%d, %d\n", (SCREEN_WIDTH - (CELL_SIZE * MAP_WIDTH)) + mini_x, SCREEN_HEIGHT - mini_y);
+    // draw player pos
     draw_square((SCREEN_WIDTH - (CELL_SIZE * MAP_WIDTH)) + mini_x, SCREEN_HEIGHT - mini_y, 2, 0xFFFFFF);
-    //printf("%d\n", mini_x);
-    //pixels[mini_y * SCREEN_WIDTH + mini_x] = 0xFF000000; // red
+
+    // draw cone of vision
 
 }
 
@@ -114,6 +136,7 @@ int main(int argc, char *argv[]) {
         //draw_square(300, 270, 10, 0x00FF00);
         //draw_square(SCREEN_WIDTH - (10 * 6), SCREEN_HEIGHT - (10 * 6), 10);
         render_minimap();
+        generate_line_points(10, 10, 50, 30);
         SDL_UpdateTexture(texture, NULL, pixels, SCREEN_WIDTH * 4);
         
         SDL_RenderCopyEx(
