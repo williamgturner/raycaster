@@ -186,15 +186,15 @@ float check_horizontal_collisions(float ray_theta) {
     grid_x = ray_x/WORLD_SCALE;
     grid_y = ray_y/WORLD_SCALE;
 
-    if((grid_x + (grid_y * 6 )) > 35 || (grid_x + (grid_y * 6 )) < 0) {
+    if((grid_x + (grid_y * 7 )) > 42 || (grid_x + (grid_y * 7 )) < 0) {
             return 1e30;
     }
-    while (map[grid_x + (grid_y * 6 )] == 0) {
+    while (map[grid_x + (grid_y * 7 )] == 0) {
         ray_x += x_delta;
         ray_y += y_delta;
         grid_x = ray_x/WORLD_SCALE;
         grid_y = ray_y/WORLD_SCALE;
-        if((grid_x + (grid_y * 6 )) > 35 || (grid_x + (grid_y * 6 )) < 0) {
+        if((grid_x + (grid_y * 7 )) > 42 || (grid_x + (grid_y * 7 )) < 0) {
             return 1e30;
     }
     }
@@ -220,17 +220,17 @@ float check_vertical_collisions(float ray_theta) {
     grid_x = ray_x/WORLD_SCALE;
     grid_y = ray_y/WORLD_SCALE;
 
-    if((grid_x + (grid_y * 6 )) > 35 || (grid_x + (grid_y * 6 )) < 0) {
+    if((grid_x + (grid_y * 7 )) > 42 || (grid_x + (grid_y * 7 )) < 0) {
             return 1e30;
     }
 
     //printf("COORDS: %d", grid_x + (grid_y  * 6 ));
-    while (map[grid_x + (grid_y  * 6 )] == 0) {
+    while (map[grid_x + (grid_y  * 7 )] == 0) {
         ray_x += x_delta;
         ray_y += y_delta;
         grid_x = ray_x/WORLD_SCALE;
         grid_y = ray_y/WORLD_SCALE;
-        if((grid_x + (grid_y * 6 )) > 35 || (grid_x + (grid_y * 6 )) < 0) {
+        if((grid_x + (grid_y * 7 )) > 42 || (grid_x + (grid_y * 7 )) < 0) {
             return 1e30;
     }
     }
