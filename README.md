@@ -19,7 +19,10 @@ Here are a collection of progress images to show how the renderer developed.
 ![alt-text](./images/woops.png "Not sure what happened here")
 
 ### 14/12/24
-![alt-text](./images/14.12.24.png "Not sure what happened here")
+![alt-text](./images/14.12.24.png "Funky!")
 
 ### 15/12/24
-![alt-text](./images/15.12.24.gif "Not sure what happened here")
+![alt-text](./images/15.12.24.gif "I can almost see it...")
+
+### 24/12/24
+![alt-text](./images/24.12.24.gif "Almost working!")
