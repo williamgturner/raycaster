@@ -49,7 +49,7 @@ void draw_vert(int y0, int y1, int column, int colour) {
     pixels[i * SCREEN_WIDTH + column] =  colour;
     }
 }
-
+// Poo Test
 int main(int argc, char *argv[]) {
     // Init SDL, create window, renderer, and texture for graphics rendering
     assert(SDL_Init(SDL_INIT_VIDEO) >= 0);
