@@ -1,0 +1,6 @@
+[
+  {
+    "directory": "/Users/willturner/Desktop/Dev/raycaster",
+    "file": "./src/raycast.c",
+    "command": "gcc ./src/raycast.c -o ./bin/raycaster -rpath /Library/Frameworks -I./Library/Frameworks/SDL2.framework -F/Library/Frameworks -framework SDL2 -framework SDL2_ttf"
+  }
