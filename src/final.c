@@ -120,6 +120,7 @@ double cast_ray(double ray_theta)
         int grid_y = floor(ray_y / WORLD_SCALE);
         while (grid_x >= 0 && grid_x < MAP_WIDTH && grid_y >= 0 && grid_y < MAP_HEIGHT) {
             if (map[grid_x + (grid_y * MAP_WIDTH)] != 0) {
+                printf("grid_x: %d | grid_y: %d  | ", grid_x, grid_y);
                 return distance_between_points(cam.x,  cam.y, ray_x, ray_y);
             }
             ray_x += x_delta;
@@ -149,14 +150,22 @@ double cast_ray_vertical(double ray_theta) {
         x_delta = 64 / tan(ray_theta * TO_RADIANS);
     } else { // iffacing DOWN
         y_delta = WORLD_SCALE;
-        ray_y = floor(cam.y / WORLD_SCALE) * WORLD_SCALE + WORLD_SCALE;
+        ray_y = floor(cam.y / WORLD_SCALE) * WORLD_SCALE + 64;
         ray_x = cam.x + fabs(cam.y - ray_y) / tan(ray_theta * TO_RADIANS);
+        if (ray_theta < 270 && ray_theta > 90) {
+
+        x_delta = -WORLD_SCALE / tan(ray_theta * TO_RADIANS);
+        } else {
+
         x_delta = WORLD_SCALE / tan(ray_theta * TO_RADIANS);
+        }
+
     }
  int grid_x = floor(ray_x / WORLD_SCALE);
         int grid_y = floor(ray_y / WORLD_SCALE);
         while (grid_x >= 0 && grid_x < MAP_WIDTH && grid_y >= 0 && grid_y < MAP_HEIGHT) {
             if (map[grid_x + (grid_y * MAP_WIDTH)] != 0) {
+                printf("grid_x: %d | grid_y: %d  | ", grid_x, grid_y);
                 return distance_between_points(cam.x,  cam.y, ray_x, ray_y);
             }
             ray_x += x_delta;
@@ -174,10 +183,12 @@ void render()
     rotate(&ray_theta, -FOV / 2);
     double ray_delta = FOV / SCREEN_WIDTH;
     for (int x = 0; x < SCREEN_WIDTH; x ++) {
+        printf("col :%d | ray_theta: %f | ", x, ray_theta);
         double distance = cast_ray(ray_theta);
         double distance1 = cast_ray_vertical(ray_theta);
         distance = distance * cos((cam.theta - ray_theta) * TO_RADIANS);
         distance1 = distance1 * cos((cam.theta - ray_theta) * TO_RADIANS);
+        printf("horiz_dist: %f | vert_dist: %f\n", distance, distance1);
         int wall_height;
         int y0;
         int colour;
