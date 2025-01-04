@@ -40,7 +40,7 @@ int8_t map[MAP_HEIGHT * MAP_WIDTH] = {
     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
 };
 
-camera cam = {12 * WORLD_SCALE, 2 * WORLD_SCALE, 0.0};
+camera cam = {12 * WORLD_SCALE, 6 * WORLD_SCALE, 0.0};
 
 /**
  * Rotate an angle in degrees by given angle
@@ -102,7 +102,6 @@ double cast_ray(double ray_theta)
         double y_delta;
         
     if (fabs(ray_theta - 90) <= 0.00001 || fabs(ray_theta - 270) <= 0.00001) {
-        printf("%f\n", ray_theta);
         return DBL_MAX;
     }
         if (ray_theta < 90 || ray_theta > 270) {
@@ -111,7 +110,7 @@ double cast_ray(double ray_theta)
              ray_y = cam.y + tan(ray_theta * TO_RADIANS) * (ray_x - cam.x);
              y_delta = tan(ray_theta * TO_RADIANS) * WORLD_SCALE;
         } else {
-             ray_x = floor(cam.x/WORLD_SCALE) * WORLD_SCALE;
+             ray_x = floor(cam.x/WORLD_SCALE) * WORLD_SCALE - 1;
              x_delta = -WORLD_SCALE;
              ray_y = cam.y + tan(ray_theta * TO_RADIANS) * fabs(ray_x - cam.x);
              y_delta = tan(ray_theta * TO_RADIANS) * WORLD_SCALE;
@@ -119,11 +118,9 @@ double cast_ray(double ray_theta)
         
         int grid_x = floor(ray_x / WORLD_SCALE);
         int grid_y = floor(ray_y / WORLD_SCALE);
-    printf("%d, %d\n", grid_x, grid_y);
         while (grid_x >= 0 && grid_x < MAP_WIDTH && grid_y >= 0 && grid_y < MAP_HEIGHT) {
             if (map[grid_x + (grid_y * MAP_WIDTH)] != 0) {
-                printf("Tes\nx: %f | y: %f\n", ray_x, ray_y);
-                return distance_between_points(cam.x,  cam.y, floor(ray_x), floor(ray_y));
+                return distance_between_points(cam.x,  cam.y, ray_x, ray_y);
             }
             ray_x += x_delta;
             ray_y += y_delta;
@@ -140,30 +137,27 @@ double cast_ray_vertical(double ray_theta) {
     double x_delta;
     double y_delta;
      if (fabs(ray_theta - 180) <= 0.00001 || fabs(ray_theta) <= 0.00001) { // ignore rays straight left or right
-       printf("%f\n", ray_theta);
        return DBL_MAX;
     }
 
 
     if (ray_theta < 180) { // if facing UP
         y_delta = -WORLD_SCALE; // move up by 1 tile
-        ray_y = floor(cam.y / WORLD_SCALE) * WORLD_SCALE; // start at bottom of current tile
+        ray_y = floor(cam.y / WORLD_SCALE) * WORLD_SCALE -1; // start at bottom of current tile
         // ray_x = cam.y - ray_y / tan(ray_theta * TO_RADIANS);
         ray_x = cam.x + (cam.y - ray_y) / tan(ray_theta * TO_RADIANS);
         x_delta = 64 / tan(ray_theta * TO_RADIANS);
     } else { // iffacing DOWN
         y_delta = WORLD_SCALE;
-        ray_y = floor(cam.y / WORLD_SCALE) * WORLD_SCALE;
+        ray_y = floor(cam.y / WORLD_SCALE) * WORLD_SCALE + WORLD_SCALE;
         ray_x = cam.x + fabs(cam.y - ray_y) / tan(ray_theta * TO_RADIANS);
         x_delta = WORLD_SCALE / tan(ray_theta * TO_RADIANS);
     }
  int grid_x = floor(ray_x / WORLD_SCALE);
         int grid_y = floor(ray_y / WORLD_SCALE);
-    printf("%d, %d\n", grid_x, grid_y);
         while (grid_x >= 0 && grid_x < MAP_WIDTH && grid_y >= 0 && grid_y < MAP_HEIGHT) {
             if (map[grid_x + (grid_y * MAP_WIDTH)] != 0) {
-                printf("Tes\nx: %f | y: %f\n", ray_x, ray_y);
-                return distance_between_points(cam.x,  cam.y, floor(ray_x), floor(ray_y));
+                return distance_between_points(cam.x,  cam.y, ray_x, ray_y);
             }
             ray_x += x_delta;
             ray_y += y_delta;
@@ -182,14 +176,17 @@ void render()
     for (int x = 0; x < SCREEN_WIDTH; x ++) {
         double distance = cast_ray(ray_theta);
         double distance1 = cast_ray_vertical(ray_theta);
-        
+        distance = distance * cos((cam.theta - ray_theta) * TO_RADIANS);
+        distance1 = distance1 * cos((cam.theta - ray_theta) * TO_RADIANS);
         int wall_height;
         int y0;
-        if (distance < distance1) {
-            printf("%f\n", distance);
+        int colour;
+        if (distance < distance1 - 0.0001) {
             wall_height = WORLD_SCALE / distance * 277;
+            colour = 0xFF0000;
         } else {
             wall_height = WORLD_SCALE / distance1 * 277;
+            colour = 0xFFFF00;
         }
         if (wall_height > SCREEN_HEIGHT) {
             wall_height = SCREEN_HEIGHT;
@@ -198,8 +195,8 @@ void render()
             wall_height = 0;
         }
         y0 = SCREEN_HEIGHT / 2 - wall_height /2;
-       draw_vert(y0, y0 + wall_height, x, 0xFF0000);
-        rotate(&ray_theta, ray_delta);
+       draw_vert(y0, y0 + wall_height, x, colour);
+       rotate(&ray_theta, ray_delta);
     }
 }
 int main(int argc, char *argv[]) {
