@@ -1,6 +1,6 @@
 APP_NAME = raycaster
 BUILD_DIR = ./bin
-C_FILES = ./src/*.c
+C_FILES = ./src/final.c
 
 APP_INCLUDES:= -I./Library/Frameworks/SDL2.framework
 LIBRARIES:= -L./Library/Frameworks/SDL2.framework/Headers -lSDL2 -lSDL2_ttf
