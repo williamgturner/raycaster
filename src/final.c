@@ -15,7 +15,7 @@
 
 SDL_Window *window;
 SDL_Renderer *renderer;
-uint32_t pixels[SCREEN_WIDTH * SCREEN_HEIGHT];
+uint32_t pixels[SCREEN_WIDTH* SCREEN_HEIGHT];
 int quit = 0;
 
 typedef struct {
@@ -24,23 +24,23 @@ typedef struct {
     double theta;
 } camera;
 
-uint8_t map[SCREEN_HEIGHT * SCREEN_WIDTH] = {
+int8_t map[MAP_HEIGHT * MAP_WIDTH] = {
     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-    1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1,
-    1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1,
-    1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 3, 0, 0, 1,
-    1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-    1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1,
     1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
     1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-    1, 0, 1, 0, 2, 0, 3, 0, 0, 0, 0, 0, 0, 0, 1,
-    1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 1,
-    1, 0, 2, 0, 3, 0, 1, 0, 0, 0, 0, 1, 0, 0, 1,
-    1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1,
+    1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+    1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+    1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+    1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+    1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+    1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+    1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+    1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+    1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
 };
 
-camera cam = {12.7 * WORLD_SCALE, 4 * WORLD_SCALE, 0.0};
+camera cam = {12 * WORLD_SCALE, 2 * WORLD_SCALE, 0.0};
 
 /**
  * Rotate an angle in degrees by given angle
@@ -80,7 +80,10 @@ double distance_between_points(double x0, double y0, double x1, double y1)
 * */
 void draw_vert(int y0, int y1, int x, int colour) {
     for (int i = y0; i < y1; i++) {
-    pixels[i * SCREEN_WIDTH + x] =  colour;
+        if (i * SCREEN_WIDTH + x < SCREEN_WIDTH * SCREEN_HEIGHT) {
+
+            pixels[i * SCREEN_WIDTH + x] =  colour;
+        }
     }
 }
 
@@ -98,19 +101,19 @@ double cast_ray(double ray_theta)
         double x_delta;
         double y_delta;
         
-    if (fabs(ray_theta - 90) <= 0.001 || fabs(ray_theta - 270) <= 0.001) {
+    if (fabs(ray_theta - 90) <= 0.00001 || fabs(ray_theta - 270) <= 0.00001) {
         printf("%f\n", ray_theta);
         return DBL_MAX;
     }
-        if (ray_theta < 90 && ray_theta > 270) {
+        if (ray_theta < 90 || ray_theta > 270) {
              ray_x = floor(cam.x/WORLD_SCALE) * WORLD_SCALE + WORLD_SCALE;
              x_delta = WORLD_SCALE;
-             ray_y = tan(ray_theta * TO_RADIANS) * (ray_x - cam.x);
+             ray_y = cam.y + tan(ray_theta * TO_RADIANS) * (ray_x - cam.x);
              y_delta = tan(ray_theta * TO_RADIANS) * WORLD_SCALE;
         } else {
              ray_x = floor(cam.x/WORLD_SCALE) * WORLD_SCALE;
              x_delta = -WORLD_SCALE;
-             ray_y = tan(ray_theta * TO_RADIANS) * fabs(ray_x - cam.x);
+             ray_y = cam.y + tan(ray_theta * TO_RADIANS) * fabs(ray_x - cam.x);
              y_delta = tan(ray_theta * TO_RADIANS) * WORLD_SCALE;
         }
         
@@ -129,7 +132,46 @@ double cast_ray(double ray_theta)
             
         }
     return DBL_MAX;
+}
 
+double cast_ray_vertical(double ray_theta) {
+    double ray_x;
+    double ray_y;
+    double x_delta;
+    double y_delta;
+     if (fabs(ray_theta - 180) <= 0.00001 || fabs(ray_theta) <= 0.00001) { // ignore rays straight left or right
+       printf("%f\n", ray_theta);
+       return DBL_MAX;
+    }
+
+
+    if (ray_theta < 180) { // if facing UP
+        y_delta = -WORLD_SCALE; // move up by 1 tile
+        ray_y = floor(cam.y / WORLD_SCALE) * WORLD_SCALE; // start at bottom of current tile
+        // ray_x = cam.y - ray_y / tan(ray_theta * TO_RADIANS);
+        ray_x = cam.x + (cam.y - ray_y) / tan(ray_theta * TO_RADIANS);
+        x_delta = 64 / tan(ray_theta * TO_RADIANS);
+    } else { // iffacing DOWN
+        y_delta = WORLD_SCALE;
+        ray_y = floor(cam.y / WORLD_SCALE) * WORLD_SCALE;
+        ray_x = cam.x + fabs(cam.y - ray_y) / tan(ray_theta * TO_RADIANS);
+        x_delta = WORLD_SCALE / tan(ray_theta * TO_RADIANS);
+    }
+ int grid_x = floor(ray_x / WORLD_SCALE);
+        int grid_y = floor(ray_y / WORLD_SCALE);
+    printf("%d, %d\n", grid_x, grid_y);
+        while (grid_x >= 0 && grid_x < MAP_WIDTH && grid_y >= 0 && grid_y < MAP_HEIGHT) {
+            if (map[grid_x + (grid_y * MAP_WIDTH)] != 0) {
+                printf("Tes\nx: %f | y: %f\n", ray_x, ray_y);
+                return distance_between_points(cam.x,  cam.y, floor(ray_x), floor(ray_y));
+            }
+            ray_x += x_delta;
+            ray_y += y_delta;
+            grid_x = floor(ray_x / WORLD_SCALE);
+            grid_y = floor(ray_y / WORLD_SCALE);
+            
+        }
+    return DBL_MAX;
 }
 
 void render()
@@ -139,13 +181,24 @@ void render()
     double ray_delta = FOV / SCREEN_WIDTH;
     for (int x = 0; x < SCREEN_WIDTH; x ++) {
         double distance = cast_ray(ray_theta);
-
-        printf("%f\n", distance);
-        int wall_height = WORLD_SCALE / distance * 277;
-        printf("height: %d\n", wall_height);
-        int y0 = SCREEN_HEIGHT/2 - wall_height/2;
-        printf("start: %d\n", y0);
-        draw_vert(y0, y0 + wall_height, x, 0xFF0000);
+        double distance1 = cast_ray_vertical(ray_theta);
+        
+        int wall_height;
+        int y0;
+        if (distance < distance1) {
+            printf("%f\n", distance);
+            wall_height = WORLD_SCALE / distance * 277;
+        } else {
+            wall_height = WORLD_SCALE / distance1 * 277;
+        }
+        if (wall_height > SCREEN_HEIGHT) {
+            wall_height = SCREEN_HEIGHT;
+        }
+        if (wall_height < 0) {
+            wall_height = 0;
+        }
+        y0 = SCREEN_HEIGHT / 2 - wall_height /2;
+       draw_vert(y0, y0 + wall_height, x, 0xFF0000);
         rotate(&ray_theta, ray_delta);
     }
 }
@@ -255,6 +308,8 @@ int main(int argc, char *argv[]) {
         if (keystate[SDL_SCANCODE_E]) {
             rotate(&cam.theta, -5);
         }
+        SDL_DestroyTexture(Message);
+        SDL_FreeSurface(surfaceMessage);
     }
     SDL_DestroyWindow(window);
     SDL_Quit();
